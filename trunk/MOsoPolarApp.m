@@ -151,8 +151,14 @@
         [[context manager] setState: @"PREV_STATE_OUT"];
         [currentPageContext.manager setState:@"STATE_OUT"];
         // clear depends
-        for(int i = 0; i < currentPageContext.depends.count; i++)
-            [self clearBlockWithId:[currentPageContext.depends objectAtIndex:i]];
+        NSString* dependID;
+        for(int i = 0; i < currentPageContext.depends.count; i++) {
+            dependID = [currentPageContext.depends objectAtIndex:i];
+            if(![nextPageContext.depends containsObject:dependID]) {
+                [self clearBlockWithId:dependID];
+            }
+        }
+    
         
 
     } else {
@@ -204,14 +210,14 @@
     // display page
     [context.master display];
     [MObjectUtil mergeProps:data withObject:[context.master target]];
-    
-    // set STATE_IN
-    [[context manager] setState: @"STATE_IN"];
-    
+
     // execute setup
     if([[[context master] target] respondsToSelector:@selector(setup)]) {
         [[[context master] target] performSelector:@selector(setup)];
     }
+    
+    // set STATE_IN
+    [[context manager] setState: @"STATE_IN"];
     
     return context;
 }
@@ -287,6 +293,9 @@
             currentPageContext = nextPageContext;
             [currentPageContext.manager setState:@"STATE_IN"];
             // execute setup
+            MPageContext* ctx = currentPageContext;
+            id<MViewMaster> mster = [ctx master];
+            
             if([[[currentPageContext master] target] respondsToSelector:@selector(setup)]) {
                 [[[currentPageContext master] target] performSelector:@selector(setup)];
             }
@@ -316,7 +325,7 @@
     NSArray* registeredHandlers = [handlers objectForKey:type];
 
     
-    [MLogger debugWithFormat:@"OsoPolar event received (%@) (Handlers: %i)", type, registeredHandlers.count];
+    [MLogger infoWithFormat:@"OsoPolar event received (%@) (Handlers: %i)", type, registeredHandlers.count];
     for( int i = 0; i < registeredHandlers.count; i++) {
         NSDictionary* eventData = [registeredHandlers objectAtIndex:i];
         NSString* key = [eventData valueForKey:@"pageName"];
@@ -412,10 +421,8 @@
 
         if(tmpcontainer.subviews.count == 0) {
             [tmpcontainer setHidden:YES];
-            [MLogger verboseWithFormat:@"hideUnusedContainers %@ %i setHidden YES", viewname, tmpcontainer.subviews.count];
         } else {
             [tmpcontainer setHidden:NO];
-            [MLogger verboseWithFormat:@"hideUnusedContainers %@ %i setHidden NO", viewname, tmpcontainer.subviews.count];
         }
     }
 }

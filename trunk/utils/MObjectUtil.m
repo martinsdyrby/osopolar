@@ -11,23 +11,27 @@
 @implementation MObjectUtil
 
 + (void) mergeProps: (NSDictionary *) props withObject: (id) object {
-
-    NSEnumerator *e = [props keyEnumerator];
-    NSString* propKey;
-    while (propKey = [e nextObject]) {
-        NSObject* propValue = [props objectForKey:propKey];
+    if(props == nil) return;
+    if([props isKindOfClass:[NSDictionary class]]) {
+        NSEnumerator *e = [props keyEnumerator];
+        NSString* propKey;
+        while (propKey = [e nextObject]) {
+            NSObject* propValue = [props objectForKey:propKey];
         
-        [MLogger debugWithFormat:@"MObjectUtil (%@)",propKey];
-        @try {
-            [object setValue: propValue forKey: propKey];
-        }
-        @catch (NSException* e) {
-            if ([[e name] isEqualToString:NSUndefinedKeyException]) {
-                [MLogger errorWithFormat:@"NSException for %@ on %@", propKey, object];
-            } else {
-                [e raise];
+            [MLogger debugWithFormat:@"MObjectUtil (%@)",propKey];
+            @try {
+                [object setValue: propValue forKey: propKey];
+            }
+            @catch (NSException* e) {
+                if ([[e name] isEqualToString:NSUndefinedKeyException]) {
+                    [MLogger errorWithFormat:@"NSException for %@ on %@", propKey, object];
+                } else {
+                    [e raise];
+                }
             }
         }
+    } else {
+        [MLogger errorWithFormat:@"MObjectUtil %@ is not a NSDictionary", props];
     }
 }
 
