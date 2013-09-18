@@ -27,7 +27,7 @@ static int level = 3;
     if(level == 0) {
         va_list args;
         va_start(args, format);
-        NSLog(@"[MLogger] [DEBUG] %@", [[NSString alloc] initWithFormat:format arguments:args]);
+        NSLog(@"[MLogger] [VERBOSE] %@", [[NSString alloc] initWithFormat:format arguments:args]);
         va_end(args);
     }
 }

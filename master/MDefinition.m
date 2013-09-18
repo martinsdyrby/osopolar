@@ -8,7 +8,7 @@
 
 #import "MDefinition.h"
 #import "MObjectUtil.h"
-
+#import "MAppDelegate.h"
 
 @interface MDefinition ()
 
@@ -30,8 +30,16 @@ static NSMutableDictionary* instances = nil;
         viewController = [[NSClassFromString(self.context.type) alloc] initWithNibName: self.context.xib bundle:nil];
         [MDefinition addContextInstance:viewController forId:self.context.id];
     }
-
     self.target = viewController;
+    
+    MAppDelegate *appDelegate = (MAppDelegate*)[[UIApplication sharedApplication] delegate];
+    
+    if(appDelegate.viewHeight > -1) {
+        CGRect f = viewController.view.frame;
+        f.size.height = appDelegate.viewHeight;
+        viewController.view.frame = f;
+    }
+    
     [self.context.container addSubview:viewController.view];
 }
 
