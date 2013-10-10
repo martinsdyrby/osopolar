@@ -307,6 +307,10 @@
             
             if([context.manager target] == state.target) {
                 [curBlockIds removeObjectAtIndex:i];
+				//Patriks contribution to the framework!
+                if([[context.manager target] respondsToSelector:@selector(destroy)]) {
+                    [[context.manager target] performSelector:@selector(destroy)];
+                }
                 [context.master clear];
                 break;
             }
