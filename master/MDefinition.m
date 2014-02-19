@@ -8,7 +8,6 @@
 
 #import "MDefinition.h"
 #import "MObjectUtil.h"
-#import "MAppDelegate.h"
 
 @interface MDefinition ()
 
@@ -32,11 +31,12 @@ static NSMutableDictionary* instances = nil;
     }
     self.target = viewController;
     
-    MAppDelegate *appDelegate = (MAppDelegate*)[[UIApplication sharedApplication] delegate];
-    
-    if(appDelegate.viewHeight > -1) {
+    UIScreen *mainScreen = [UIScreen mainScreen];
+    CGRect screenBounds = mainScreen.bounds;
+    int viewHeight = CGRectGetHeight(screenBounds);
+    if(viewHeight > -1) {
         CGRect f = viewController.view.frame;
-        f.size.height = appDelegate.viewHeight;
+        f.size.height = viewHeight;
         viewController.view.frame = f;
     }
     
