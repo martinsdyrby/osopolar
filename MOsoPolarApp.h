@@ -14,6 +14,7 @@
 
 @interface MOsoPolarApp : UIViewController
 
+- (id) initWithXmlName: (NSString *)name andNibName: (NSString *)nibNameOrNil bundle: (NSBundle *)nibBundleOrNil;
 - (id) initWithPlistName: (NSString *)name andNibName: (NSString *)nibNameOrNil bundle: (NSBundle *)nibBundleOrNil;
 - (MPageContext *) gotoPageWithId: (NSString *) pageId andData: (NSDictionary *) data;
 - (MBlockContext *) displayBlockWithId: (NSString *) blockId andData: (NSDictionary *) data;

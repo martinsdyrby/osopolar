@@ -14,6 +14,7 @@
 #import "MObjectUtil.h"
 #import "MState.h"
 #import "MLogger.h"
+#import "MOsoPolarParser.h"
 
 @interface MOsoPolarApp ()
 
@@ -49,17 +50,45 @@
 @synthesize props;
 @synthesize curBlockIds;
 
-- (id) initWithPlistName: (NSString *)name andNibName: (NSString *)nibNameOrNil bundle: (NSBundle *)nibBundleOrNil {
-
+- (id) initWithNibName: (NSString *) nibNameOrNil bundle: (NSBundle *)nibBundleOrNil {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     
     containers = [[NSMutableDictionary alloc] initWithCapacity:1];
     
     curBlockIds = [NSMutableArray array];
     
+    return self;
+}
+
+
+- (id) initWithXmlName: (NSString *)name andNibName: (NSString *)nibNameOrNil bundle: (NSBundle *)nibBundleOrNil {
+    self = [self initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    
+    // LOAD CONFIGURATION
+    MOsoPolarParser* parser = [[MOsoPolarParser alloc] initWithName:name];
+    if([parser parse]) {
+        self.pages = [parser.entries valueForKey:@"pages"];
+        self.blocks = [parser.entries valueForKey:@"blocks"];
+        self.commands = [parser.entries valueForKey:@"commands"];
+    }
+
+    [self postInit];
+    
+    return self;
+}
+
+- (id) initWithPlistName: (NSString *)name andNibName: (NSString *)nibNameOrNil bundle: (NSBundle *)nibBundleOrNil {
+    self = [self initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    
     // LOAD CONFIGURATION
     [self loadPlistWithName:name];
     
+    [self postInit];
+    
+    return self;
+}
+
+- (void) postInit {
     // EXTRACT EVENTS FROM PAGES
     [self extractHandlers];
     
@@ -70,8 +99,7 @@
      selector: @selector(stateChange:)
      name:@"STATE_CHANGE"
      object: nil];
-    
-    return self;
+
 }
 
 - (void) callId: (NSString *) callId andData: (NSDictionary *)data {
@@ -296,8 +324,8 @@
             MPageContext* ctx = currentPageContext;
             id<MViewMaster> mster = [ctx master];
             
-            if([[[currentPageContext master] target] respondsToSelector:@selector(setup)]) {
-                [[[currentPageContext master] target] performSelector:@selector(setup)];
+            if([[mster target] respondsToSelector:@selector(setup)]) {
+                [[mster target] performSelector:@selector(setup)];
             }
         }
     } else if([state.state isEqualToString:@"STATE_OFF"]) {
@@ -371,6 +399,10 @@
     props = [plist objectForKey:@"props"];
 }
 
+- (void) loadXMLWithName: (NSString*) name {
+    
+}
+
 - (void) extractHandlers{
     handlers = [[NSMutableDictionary alloc] init];
     
@@ -396,8 +428,9 @@
                     eventTypeName = (NSString*) eventType;
                     eventTypeAction = @"display";
                 } else {
-                    eventTypeName = [eventType valueForKey:@"name"];
+                    eventTypeName = [eventType valueForKey:@"type"];
                     eventTypeAction = [eventType valueForKey:@"action"];
+                    eventTypeAction = eventTypeAction != nil ? eventTypeAction : @"display";
                 }
                 NSMutableArray* pageevents = [handlers objectForKey:eventTypeName];
                 if(pageevents == nil) {
