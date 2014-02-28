@@ -13,7 +13,7 @@
 
 @interface MObjectFactory : NSObject
 
-- (id) initWithPages: (NSDictionary *) pages andBlocks: (NSDictionary *) blocks andCommands: (NSDictionary *) commands;
+- (id) initWithPages: (NSDictionary *) pages andBlocks: (NSDictionary *) blocks andCommands: (NSDictionary *) commands andProps: (NSDictionary*) props;
 
 - (MPageContext *) getPageContextWithId: (NSString *) pageId;
 - (MBlockContext *) getBlockContextWithId: (NSString *) blockId;

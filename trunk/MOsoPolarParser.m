@@ -9,7 +9,7 @@
 #import "MOsoPolarParser.h"
 
 @interface MOsoPolarParser(){
-    NSMutableDictionary *_entries, *_pages, *_blocks, *_commands, *_curObj;
+    NSMutableDictionary *_entries, *_pages, *_blocks, *_commands, *_props, *_curObj;
     NSObject *_curSubObj;
     NSMutableString *_curContent;
     NSMutableArray *_curSubs;
@@ -21,7 +21,6 @@
 @implementation MOsoPolarParser
 
 
-NSString *const OSONEGRO = @"osonegro";
 NSString *const PAGE = @"page";
 NSString *const BLOCK = @"block";
 NSString *const COMMAND = @"command";
@@ -115,9 +114,14 @@ NSString *const VALUE = @"value";
         
         // IF COUNT SUBS ARRAY IS = 0
         if([_curSubs count] == 0) {
-            // THEN ADD TO CUR OBJ
-            NSMutableDictionary *props = [_curObj objectForKey:PROPS];
-            [props setObject:_curSubObj forKey:[_curSubObj valueForKey:NAME]];
+            if(_curObj != nil) {
+                // THEN ADD TO CUR OBJ
+                NSMutableDictionary *props = [_curObj objectForKey:PROPS];
+                [props setObject:[_curSubObj valueForKey:VALUE] forKey:[_curSubObj valueForKey:NAME]];
+            } else {
+                // ELSE ADD TO GLOBAL PROPS
+                [_props setObject:[_curSubObj valueForKey:VALUE] forKey:[_curSubObj valueForKey:NAME]];
+            }
         } else { // IF COUNT SUBS ARRAY IS > 0
             // GET LAST ELEMENT IN SUBS ARRAY
             NSObject *_lastElementObj = [_curSubs objectAtIndex:[_curSubs count] - 1];
@@ -188,10 +192,12 @@ NSString *const VALUE = @"value";
     _pages = [[NSMutableDictionary alloc] init];
     _blocks = [[NSMutableDictionary alloc] init];
     _commands = [[NSMutableDictionary alloc] init];
+    _props = [[NSMutableDictionary alloc] init];
 
     [_entries setValue:_pages forKey:PAGES];
     [_entries setValue:_blocks forKey:BLOCKS];
     [_entries setValue:_commands forKey:COMMANDS];
+    [_entries setValue:_props forKey:PROPS];
     
     BOOL success = [super parse];
     NSLog(@"Entries: %@", _entries);

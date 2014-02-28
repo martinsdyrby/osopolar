@@ -10,7 +10,9 @@
 #import "MDefinition.h"
 #import "MExecute.h"
 
-@interface MObjectFactory ()
+@interface MObjectFactory () {
+
+}
 
 @property (retain) NSMutableDictionary* pageContexts;
 @property (retain) NSMutableDictionary* blockContexts;
@@ -18,6 +20,8 @@
 @property (retain) NSDictionary* pagesList;
 @property (retain) NSDictionary* blocksList;
 @property (retain) NSDictionary* commandsList;
+@property (retain) NSDictionary* propsList;
+@property (retain) NSArray* propsKeySet;
 
 @end
 
@@ -29,12 +33,16 @@
 @synthesize blocksList;
 @synthesize commandContexts;
 @synthesize commandsList;
+@synthesize propsList;
+@synthesize propsKeySet;
 
-- (id) initWithPages: (NSDictionary *) pages andBlocks: (NSDictionary *) blocks andCommands: (NSDictionary *) commands {
+- (id) initWithPages: (NSDictionary *) pages andBlocks: (NSDictionary *) blocks andCommands: (NSDictionary *) commands andProps:(NSDictionary *)props {
     
     self.pagesList = pages;
     self.blocksList = blocks;
     self.commandsList = commands;
+    self.propsList = props;
+    self.propsKeySet = [propsList allKeys];
     
     self.pageContexts = [[NSMutableDictionary alloc] initWithCapacity:0];
     self.blockContexts = [[NSMutableDictionary alloc] initWithCapacity:0];
@@ -77,6 +85,7 @@
         context.master = [self setContextValue: [self resolveMaster: [page objectForKey:@"type"]] withDefault: context.master];
         context.master.context = context;
         
+        if(context.xib == nil) context.xib = context.type;
         [pageContexts setObject:context forKey:pageId];
     }
     
@@ -118,7 +127,7 @@
                                     withDefault: nil];
         context.master = [self setContextValue: [self resolveMaster: [block objectForKey:@"type"]] withDefault: context.master];
         context.master.context = context;
-                
+        if(context.xib == nil) context.xib = context.type;                
         [blockContexts setObject:context forKey:blockId];
     }
     
@@ -136,9 +145,9 @@
             return nil;
         }
         context.id = commandId;
-        context.type = [command objectForKey:@"type"];
-        context.props = [command objectForKey:@"props"];
-        context.master = [self resolveCommandMaster: [command objectForKey:@"master"]];
+        context.type = [self setContextValue:[command objectForKey:@"type"] withDefault:nil];
+        context.props = [self setContextValue:[command objectForKey:@"props"] withDefault:nil];
+        context.master = [self setContextValue: [self resolveCommandMaster: [command objectForKey:@"master"]] withDefault:nil];
         context.master.context = context;
 
         [commandContexts setObject:context forKey:commandId];
@@ -148,6 +157,9 @@
 }
 
 - (id<MStateManager>) resolveManager: (NSString *) managerName withDefault: (id) defaultManager {
+    
+    managerName = [self resolveExpression:managerName];
+    
     if(managerName == nil) {
         if(defaultManager == nil) {
             managerName = @"MSimpleStateManager";
@@ -166,7 +178,9 @@
 }
 
 - (id<MViewMaster>) resolveMaster: (NSString *) masterName {
-    if([masterName isEqualToString:@"Definition"]) {
+    masterName = [self resolveExpression:masterName];
+    
+    if([masterName isEqualToString:@"Definition"] || [masterName isEqualToString:@"Layout"]) {
         masterName = @"MDefinition";
     } else if([masterName isEqualToString:@"Nib"]) {
         masterName = @"MNibMaster";
@@ -175,6 +189,7 @@
 }
 
 - (id<MCommandMaster>) resolveCommandMaster: (NSString *) masterName {
+    masterName = [self resolveExpression:masterName];
     if(masterName == nil) {
         masterName = @"MExecute";
     }
@@ -183,8 +198,14 @@
 
 
 - (id) setContextValue: (id) value withDefault: (id) defaultValue {
+
+    if(value != nil && [value isKindOfClass:NSString.class]) {
+        value = [self resolveExpression:(NSString*)value];
+    }
+    
     if (value == nil) return defaultValue;
     return value;
+
 }
 
 - (void) setViewContextProperties: (NSDictionary *) props onContext: (id<MViewableContext,MContext>) context {
@@ -193,5 +214,17 @@
     context.depends = [self setContextValue: [props objectForKey:@"depends"] withDefault: context.depends];
     context.props = [self setContextValue: [props objectForKey:@"props"] withDefault: context.props];
     context.containerName = [self setContextValue: [props objectForKey:@"container"] withDefault: context.containerName];
+}
+
+- (NSString*) resolveExpression: (NSString*) expression {
+    if([expression rangeOfString:@"${"].location != NSNotFound) {
+        NSString* propValue;
+        for (NSString* key in propsKeySet) {
+            propValue = [propsList objectForKey:key];
+            NSString* sKey = [NSString stringWithFormat:@"${%@}", key];
+            expression = [expression stringByReplacingOccurrencesOfString: sKey withString:propValue];
+        }
+    }
+    return expression;
 }
 @end
