@@ -70,6 +70,7 @@
         self.pages = [parser.entries valueForKey:@"pages"];
         self.blocks = [parser.entries valueForKey:@"blocks"];
         self.commands = [parser.entries valueForKey:@"commands"];
+        self.props = [parser.entries valueForKey:@"props"];
     }
 
     [self postInit];
@@ -92,7 +93,7 @@
     // EXTRACT EVENTS FROM PAGES
     [self extractHandlers];
     
-    factory = [[MObjectFactory alloc] initWithPages: self.pages andBlocks: self.blocks andCommands: self.commands];
+    factory = [[MObjectFactory alloc] initWithPages: self.pages andBlocks: self.blocks andCommands: self.commands andProps: self.props];
     
     [[NSNotificationCenter defaultCenter]
      addObserver:self
@@ -224,7 +225,7 @@
         return nil;
     }
 
-    int index = [curBlockIds indexOfObject:blockId];
+    NSUInteger index = [curBlockIds indexOfObject:blockId];
     
     if(index != NSNotFound) {
         [MObjectUtil mergeProps:data withObject:[context.master target]];
@@ -254,7 +255,7 @@
     
 
     MBlockContext* context = [factory getBlockContextWithId:blockId];
-    int index = [curBlockIds indexOfObject:blockId];
+    NSUInteger index = [curBlockIds indexOfObject:blockId];
     if(index != NSNotFound) {
         [[context manager] setState: @"STATE_OUT"];
     } else {
