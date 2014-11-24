@@ -210,7 +210,7 @@
 
 - (void) setViewContextProperties: (NSDictionary *) props onContext: (id<MViewableContext,MContext>) context {
     context.type = [self setContextValue: [props objectForKey:@"target"] withDefault: context.type];
-    context.xib = [self setContextValue: [props objectForKey:@"xib"] withDefault: context.xib];
+    context.xib = [self setContextValue: [props objectForKey:@"xib"] withDefault: context.xib != nil ? context.xib : context.type];
     context.depends = [self setContextValue: [props objectForKey:@"depends"] withDefault: context.depends];
     context.props = [self setContextValue: [props objectForKey:@"props"] withDefault: context.props];
     context.containerName = [self setContextValue: [props objectForKey:@"container"] withDefault: context.containerName];

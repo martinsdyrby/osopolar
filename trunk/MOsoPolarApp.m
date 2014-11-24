@@ -50,8 +50,19 @@
 @synthesize props;
 @synthesize curBlockIds;
 
+static MOsoPolarApp *sharedInstance;
+
++ (id)sharedInstance {
+    return sharedInstance;
+}
+
 - (id) initWithNibName: (NSString *) nibNameOrNil bundle: (NSBundle *)nibBundleOrNil {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+	
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedInstance = self;
+    });
     
     containers = [[NSMutableDictionary alloc] initWithCapacity:1];
     
@@ -144,6 +155,16 @@
         [self clearBlockWithId:pageName];
         return;
     }
+}
+
+- (BOOL) isCurrentPage: (NSString*) pageId {
+    if (currentPageContext != nil && [currentPageContext.id isEqualToString:pageId]) {
+        if(nextPageContext != nil && ![nextPageContext.id isEqualToString:pageId]) {
+            return NO;
+        }
+        return YES;
+    }
+    return NO;
 }
 
 - (MPageContext *) gotoPageWithId: (NSString *) pageId andData: (NSDictionary *)data {
