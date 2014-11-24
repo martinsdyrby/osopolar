@@ -22,6 +22,8 @@
 - (void) clearBlockWithId: (NSString *) blockId;
 
 - (UIView*) addContainer: (UIView*) view withName: (NSString *) name;
+- (BOOL) isCurrentPage: (NSString*) pageId;
++ (id)sharedInstance;
 
 @property (retain) id<MOsoPolarAppDelegate> delegate;
 @property (retain) NSDictionary* props;

@@ -20,7 +20,9 @@
     command = [[NSClassFromString(context.type) alloc] init];
     
     [MObjectUtil mergeProps:context.props withObject:command];
-    
+    if([command respondsToSelector:@selector(setCommandId:)]) {
+        [command performSelector:@selector(setCommandId:) withObject:context.id];
+    }
     return command;
 }
 
